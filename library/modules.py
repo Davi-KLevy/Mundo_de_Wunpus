@@ -46,6 +46,8 @@ class BancoDeDados:
         self.clausulas = []
         self.fila = []
         self.certezas = [[-2]]
+        self.duvidas = []
+        self.marca_duv = ""
 
     def mostra_dic(self):
         print(self.dic)
@@ -177,6 +179,15 @@ class BancoDeDados:
             res2 = s.solve()
             print(res2)
             if s.solve() == True:
+                if (chave in self.duvidas) == True:
+                    if self.duvidas[0] == self.marca_duv:
+                        print("Fim de Jogo")
+                    else:
+                        self.duvidas.remove(chave)
+                        self.duvidas.append(chave)
+                else:
+                    self.duvidas.append(chave)
+                    self.marca_duv = chave
                 return "duvida"
             else:
                 list = []

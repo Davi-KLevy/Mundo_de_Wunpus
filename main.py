@@ -8,8 +8,7 @@ def workspace():
     xy = [0, 0]
     banco.enumera_casa(xy[0], xy[1])
     aux = banco.sensores( xy[0],xy[1])
-    if aux == 0:
-        banco.clausulas.append([-2])
+    banco.libera_casa(xy[0], xy[1])
     banco.enumera_adj( xy[0],xy[1])
     banco.gera_clausulas(xy[0], xy[1])
     if aux == 1:
@@ -30,6 +29,7 @@ def workspace():
             xy = comput.andar_frente()
             banco.enumera_adj(xy[0], xy[1])
             aux = banco.sensores(xy[0], xy[1])
+            banco.libera_casa(xy[0], xy[1])
             if aux == 0:
                 res = banco.libera_adj(xy)
             banco.gera_clausulas(xy[0], xy[1])
@@ -46,6 +46,8 @@ def workspace():
             print (frente)
             res = banco.posso_andar(frente)
             print (res)
+        elif res == "7":
+            print (banco.duvidas)
         elif res == "10":
             banco.pysat()
 
