@@ -1,6 +1,7 @@
 import copy
 from pysat.formula import CNF
 from pysat.solvers import Solver
+
 class Jogador:
 
     def __init__(self):
@@ -42,10 +43,16 @@ class BancoDeDados:
     def __init__(self):
         self.cont = 1
         self.dic = {}
-        self.visitados = {}
-        self.clausulas = []
+        self.visitados = []
+        self.caminho = []
+        self.clausulas_poco = []
+        self.clausulas_wump = []
+        self.bumps = []
+        self.gold = 0
+        self.scream = 0
         self.fila = []
-        self.certezas = [[-2]]
+        self.certezas_p = []
+        self.certezas_w = []
         self.duvidas = []
         self.marca_duv = ""
 
@@ -72,20 +79,62 @@ class BancoDeDados:
         lista = []
         if (chave in self.visitados) == False:
             dic = copy.deepcopy(self.dic)
+            dic2 = copy.deepcopy(self.dic)
             list = dic[chave]
-            breeze = input("Tem Brisa? ")
+            list_w = dic2[chave]
+            senso = input()
+            smell = senso[0]
+            breeze = senso[1]
+            glow = senso[2]
+            bump = senso[3]
+            scream = senso[4]
+
+            self.caminho.insert(0, chave)
+            
+            if bump == "1":
+                self.bumps.append(chave)
+                self.caminho.pop(0)
+                x = int(self.caminho[0][0])
+                y = int(self.caminho[0][2])
+            else:
+                pass
+            
             if breeze == "1":
                 lista.append(list[0])
-                self.clausulas.append(lista)
-                return 1
+                self.clausulas_poco.append(lista)
             else:
                 list[0] = int('-' + str(list[0]))
                 lista.append(list[0])
-                self.clausulas.append(lista)
-                return 0
+                self.clausulas_poco.append(lista)
+
+
+            lista = []
+            if smell == "1":
+                lista.append(list_w[0])
+                self.clausulas_wump.append(lista)
+            else:
+                list_w[0] = int('-' + str(list_w[0]))
+                lista.append(list_w[0])
+                self.clausulas_wump.append(lista)
+
+
+            if glow == "1":
+                self.gold = 1
+            else:
+                pass
+
+            if scream == "1":
+                self.scream = 1
+            else:
+                pass
+
+            return [smell, breeze]
+
+            
+            
 
     def mostra_clausulas(self):
-        for x in self.clausulas:
+        for x in self.clausulas_poco:
             print (x)
 
     def gera_clausulas(self, x, y):
@@ -103,7 +152,8 @@ class BancoDeDados:
             clausula.append(dic[chave][1])
             chave = str(x - 1) + '/' + str(y)
             clausula.append(dic[chave][1])
-            self.clausulas.append(clausula)
+            self.clausulas_poco.append(clausula)
+            self.clausulas_wump.append(clausula)
 
             clausula = []
             chave = str(x) + '/' + str(y)
@@ -111,7 +161,8 @@ class BancoDeDados:
             chave = str(x) + '/' + str(y + 1)
             res = int("-" + str(dic[chave][1]))
             clausula.append(res)
-            self.clausulas.append(clausula)
+            self.clausulas_poco.append(clausula)
+            self.clausulas_wump.append(clausula)
 
             clausula = []
             chave = str(x) + '/' + str(y)
@@ -119,7 +170,8 @@ class BancoDeDados:
             chave = str(x + 1) + '/' + str(y)
             res = int("-" + str(dic[chave][1]))
             clausula.append(res)
-            self.clausulas.append(clausula)
+            self.clausulas_poco.append(clausula)
+            self.clausulas_wump.append(clausula)
 
             clausula = []
             chave = str(x) + '/' + str(y)
@@ -127,7 +179,8 @@ class BancoDeDados:
             chave = str(x) + '/' + str(y - 1)
             res = int("-" + str(dic[chave][1]))
             clausula.append(res)
-            self.clausulas.append(clausula)
+            self.clausulas_poco.append(clausula)
+            self.clausulas_wump.append(clausula)
 
             clausula = []
             chave = str(x) + '/' + str(y)
@@ -135,24 +188,25 @@ class BancoDeDados:
             chave = str(x - 1) + '/' + str(y)
             res = int("-" + str(dic[chave][1]))
             clausula.append(res)
-            self.clausulas.append(clausula)
+            self.clausulas_poco.append(clausula)
+            self.clausulas_wump.append(clausula)
 
             chave = str(x) + '/' + str(y)
-            self.visitados.update({chave : [x,y]})
+            self.visitados.append(chave)
 
     def posso_andar(self, xy):
         list = []
         dic = copy.deepcopy(self.dic)
         chave = str(xy[0]) + "/" + str(xy[1])
         s = Solver(name='g4')
-        s.append_formula(self.clausulas)
+        s.append_formula(self.clausulas_poco)
         list.append(dic[chave][1])
         s.add_clause(list)
         print (s.solve())
         if s.solve() == False:
             list = []
             s = Solver(name='g4')
-            s.append_formula(self.clausulas)
+            s.append_formula(self.clausulas_poco)
             dic[chave][1] = int("-" + str(dic[chave][1]))
             list.append(dic[chave][1])
             s.add_clause(list)
@@ -164,7 +218,7 @@ class BancoDeDados:
                 inverso = int("-" + str(self.dic[chave][1]))
                 list.append(inverso)
                 if (self.dic[chave][1] in self.certezas) == False:
-                    self.clausulas.append(list)
+                    self.clausulas_poco.append(list)
                     self.certezas.append(dic[chave][1])
                 return "livre"
             else:
@@ -172,7 +226,7 @@ class BancoDeDados:
         else:
             list = []
             s = Solver(name='g4')
-            s.append_formula(self.clausulas)
+            s.append_formula(self.clausulas_poco)
             dic[chave][1] = int("-" + str(self.dic[chave][1]))
             list.append(dic[chave][1])
             s.add_clause(list)
@@ -194,31 +248,49 @@ class BancoDeDados:
                 chave = str(xy[0]) + "/" + str(xy[1])
                 list.append(self.dic[chave][1])
                 if (self.dic[chave][1] in self.certezas) == False:
-                    self.clausulas.append(list)
+                    self.clausulas_poco.append(list)
                     self.certezas.append(dic[chave][1])
                 return "poço"
 
-    def libera_casa(self, x, y):
+    def libera_casa(self, x, y, tipo):
         list = []
         chave = str(x) + "/" + str(y)
-        inverso = int("-" + str(self.dic[chave][1]))
-        list.append(inverso)
-        if (self.dic[chave][1] in self.certezas) == False:
-            self.clausulas.append(list)
-            self.certezas.append(self.dic[chave][1])
+        
+        if tipo == "Poco":
+            inverso = int("-" + str(self.dic[chave][1]))
+            list.append(inverso)
+            if (self.dic[chave][1] in self.certezas_p) == False:
+                self.clausulas_poco.append(list)
+                self.certezas_p.append(inverso)
 
-    def libera_adj(self, xy):
+        elif tipo == "Wumpus":
+            inverso = int("-" + str(self.dic[chave][1]))
+            list.append(inverso)
+            if (self.dic[chave][1] in self.certezas_w) == False:
+                self.clausulas_wump.append(list)
+                self.certezas_w.append(inverso)
+
+    def libera_adj(self, xy, tipo):
         x = xy[0]
         y = xy[1]
-        self.libera_casa(x, y + 1)
-        self.libera_casa(x + 1, y)
-        self.libera_casa(x, y - 1)
-        self.libera_casa(x-1, y)
+        self.libera_casa(x, y + 1, tipo)
+        self.libera_casa(x + 1, y, tipo)
+        self.libera_casa(x, y - 1, tipo)
+        self.libera_casa(x-1, y, tipo)
 
 
     def pysat(self):
         s = Solver(name='g4')
-        s.append_formula(self.clausulas)
+        s.append_formula(self.clausulas_poco)
         print (s.solve())
         for m in s.enum_models():
             print(m)
+
+
+    def mostra_tudo(self, x, y):
+        print(f"\nLOCAL: [{x}/{y}]\n")
+        print(f"DIC Poço: {self.dic}\n")
+        print(f"Bumps: {self.bumps}\n Ouro: {self.gold}\n Grito: {self.scream}")
+        print(f"CAMINHO: {self.caminho}\nVISITADOS: {self.visitados}\n")
+        print(f"Certezas Poco: {self.certezas_p}\n Certezas Wumpus: {self.certezas_w}")
+        print(f"Claus. Poco: {self.clausulas_poco}\nClaus. Wumpus: {self.clausulas_wump}")
