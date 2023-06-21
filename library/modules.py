@@ -127,7 +127,7 @@ class BancoDeDados:
                 self.bumps.append(chave)
                 self.caminho.pop(0)
                 x = int(self.caminho[0][0])
-                y = int(self.caminho[0][2])
+                y = int(self.caminho[0][1])
             else:
                 pass
             
@@ -274,7 +274,7 @@ class BancoDeDados:
                 list = []
                 chave = str(xy[0]) + "/" + str(xy[1])
                 list.append(self.dic[chave][1])
-                if (self.dic[chave][1] in self.certezas) == False:
+                if (self.dic[chave][1] in self.certezas_p) == False:
                     self.clausulas_poco.append(list)
                     self.certezas_p.append(dic[chave][1])
                 poco = "morte"
@@ -338,6 +338,7 @@ class BancoDeDados:
             if ((xy in self.fila) == True):
                 self.fila.remove(xy)
                 self.fila.append(xy)
+                print (self.fila)
             elif (xy in self.fila) == False:
                 self.fila.append(xy)
                 self.marca_duv = xy
@@ -416,19 +417,52 @@ class BancoDeDados:
             elif cont > 0:
                 self.caminho_volta.append(casa)
             cont += 1
+        
+        #print ("antes")
+        #print (self.caminho_volta)
+        
+        try:
+            while self.caminho_volta.count(self.caminho[0]) != 0:
+                aux = self.caminho_volta.index(self.caminho[0])
+
+                if aux == 0:
+                    pass
+                else:
+                    #print(aux)
+                    for i in range(aux + 1):
+                        self.caminho_volta.pop(0)
+        except:
+            pass
+
+        #print ("depois")
+        #print (self.caminho_volta)
+
+        #teste = input("teste")
 
         caminho_volta = self.caminho_volta
         for casa in caminho_volta:
-            if caminho_volta.count(casa) > 1:
-                ponto1 = caminho_volta.index(casa)
-                ponto2 = caminho_volta.index(casa, ponto1+1)
-                for i in range(ponto2):
-                    if i > ponto1 and i <= ponto2:
-                        caminho_volta.pop(i)
-        print (caminho_volta )
-
+            while True:    
+                if caminho_volta.count(casa) > 1:
+                    #print ("Conta casas")
+                    #print (caminho_volta.count(casa))
+                    ponto1 = caminho_volta.index(casa)
+                    #print (ponto1)
+                    ponto2 = caminho_volta.index(casa, ponto1+1)
+                    #print (ponto2)
+                    if ponto2 - ponto1 == 1:
+                        break
+                    for i in range(ponto2 + 1):
+                        if i > ponto1 and i <= ponto2:
+                            #print(caminho_volta)
+                            #print(i)
+                            caminho_volta.pop(1)
+                else:
+                    break
+        self.caminho_volta = caminho_volta
+        cont2 += 1
+        #print (f"Iteração: {cont2}")
+        #print (self.caminho_volta )
         #print (self.caminho)
-        #print (self.caminho_volta)
 
     def mostra_tudo(self, x, y):
         #print(f"\nLOCAL: [{x}/{y}]\n")
@@ -436,5 +470,6 @@ class BancoDeDados:
         print(f"Bumps: {self.bumps}\n Ouro: {self.gold}\n Grito: {self.scream}")
         print(f"CAMINHO: {self.caminho}\nVISITADOS: {self.visitados}\n")
         print(f"Certezas Poco: {self.certezas_p}\n Certezas Wumpus: {self.certezas_w}")
+        print(f"Marca Duvida: {self.marca_duv}")
         #print(f"Claus. Poco: {self.clausulas_poco}\nClaus. Wumpus: {self.clausulas_wump}")
         print(f"Fila: {self.fila}")

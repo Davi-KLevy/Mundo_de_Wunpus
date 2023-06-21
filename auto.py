@@ -38,13 +38,14 @@ def workspace():
             dis = banco.calcula_distancia(xy)
             if dis == 1:
                 dir = comput.descubra_direcao(banco.fila[0])
-                print (f"{dir} - {comput.direcao}")
+                #print (f"{dir} - {comput.direcao}")
                 if (dir % 4) == (comput.direcao % 4):
                     frente = comput.retorna_frente()
                     res = banco.posso_andar(frente)
                     print (res)
                     if res == "pode andar":
                         comput.andar_frente()
+                        banco.marca_duv = []
                         print("1")
                         xy = [comput.x, comput.y]
                         banco.enumera_casa(xy[0], xy[1])
@@ -70,9 +71,10 @@ def workspace():
                 #print (banco.fila)
                 banco.descobre_caminho()
                 dir = comput.descubra_direcao(banco.caminho_volta[0])
-                #print (f"{dir} - {comput.direcao}")
+                print (f"{dir} - {comput.direcao}")
                 if (dir % 4) == (comput.direcao % 4):
                     comput.andar_frente()
+                    banco.marca_duv = []
                     xy = [comput.x, comput.y]
                     banco.caminho.insert(0, [xy[0],xy[1]])
                     banco.caminho_volta.pop(0)
