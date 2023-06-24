@@ -39,7 +39,7 @@ class Jogador:
         elif self.direcao % 4 == 0:
             self.x -= 1
         print ("m")
-        print (f"LOCAL: {[self.x, self.y]}")
+        #print (f"LOCAL: {[self.x, self.y]}")
         return [self.x, self.y]
 
     def retorna_frente(self):
@@ -52,7 +52,9 @@ class Jogador:
         elif self.direcao % 4 == 0:
             return [self.x - 1, self.y]
         
-    def descubra_direcao(self, xy):
+    def descubra_direcao(self, xy, aux):
+        self.x = aux[0]
+        self.y = aux[1]
         if xy[0] == self.x:
             sub = xy[1] - self.y
             if sub > 0:
@@ -87,6 +89,9 @@ class BancoDeDados:
         self.certezas_w = []
         self.fila = []
         self.marca_duv = []
+        self.wumpus = [0]
+        self.flecha = 1
+        self.tem_wumpus = "vivo"
 
     def mostra_dic(self):
         print(self.dic)
@@ -109,59 +114,65 @@ class BancoDeDados:
     def sensores(self, x, y):
         chave = str(x) + '/' + str(y)
         lista = []
-        if (chave in self.visitados) == False:
-            dic = copy.deepcopy(self.dic)
-            dic2 = copy.deepcopy(self.dic)
-            list = dic[chave]
-            list_w = dic2[chave]
-            senso = input()
-            smell = senso[0]
-            breeze = senso[1]
-            glow = senso[2]
-            bump = senso[3]
-            scream = senso[4]
+        pos = [x,y]
+        #if (pos in self.visitados) == False:
+        dic = copy.deepcopy(self.dic)
+        dic2 = copy.deepcopy(self.dic)
+        list = dic[chave]
+        list_w = dic2[chave]
+        senso = input()
+        smell = senso[0]
+        breeze = senso[1]
+        glow = senso[2]
+        bump = senso[3]
+        scream = senso[4]
 
-            self.caminho.insert(0, [x,y])
-            
-            if bump == "1":
-                self.bumps.append(chave)
-                self.caminho.pop(0)
-                x = int(self.caminho[0][0])
-                y = int(self.caminho[0][1])
-            else:
-                pass
-            
-            if breeze == "1":
-                lista.append(list[0])
-                self.clausulas_poco.append(lista)
-            else:
-                list[0] = int('-' + str(list[0]))
-                lista.append(list[0])
-                self.clausulas_poco.append(lista)
+        self.caminho.insert(0, [x,y])
 
-
-            lista = []
-            if smell == "1":
-                lista.append(list_w[0])
-                self.clausulas_wump.append(lista)
-            else:
-                list_w[0] = int('-' + str(list_w[0]))
-                lista.append(list_w[0])
-                self.clausulas_wump.append(lista)
+        pos = [x,y]
+        
+        if bump == "1":
+            self.bumps.append(pos)
+            self.caminho.pop(0)
+            #self.caminho.remove(pos)
+            x = int(self.caminho[0][0])
+            y = int(self.caminho[0][1])
+        else:
+            pass
+        
+        if breeze == "1":
+            lista.append(list[0])
+            self.clausulas_poco.append(lista)
+        else:
+            list[0] = int('-' + str(list[0]))
+            lista.append(list[0])
+            self.clausulas_poco.append(lista)
 
 
-            if glow == "1":
-                self.gold = 1
-            else:
-                pass
+        lista = []
+        if smell == "1":
+            lista.append(list_w[0])
+            self.clausulas_wump.append(lista)
+        else:
+            list_w[0] = int('-' + str(list_w[0]))
+            lista.append(list_w[0])
+            self.clausulas_wump.append(lista)
 
-            if scream == "1":
-                self.scream = 1
-            else:
-                pass
 
-            return [smell, breeze]
-        return
+        if glow == "1":
+            self.gold = 1
+        else:
+            pass
+
+        if scream == '1':
+            self.scream = 1
+            self.tem_wumpus = "morto"
+            self.wumpus = [0]
+        else:
+            pass
+
+        return [smell, breeze]
+        #return
 
             
             
@@ -174,7 +185,8 @@ class BancoDeDados:
         clausula = []
         dic = copy.deepcopy(self.dic)
         chave = str(x) + '/' + str(y)
-        if (chave in self.visitados) == False:
+        pos = [x,y]
+        if (pos in self.visitados) == False:
             res = int("-" + str(dic[chave][0]))
             clausula.append(res)
             chave = str(x) + '/' + str(y + 1)
@@ -225,7 +237,7 @@ class BancoDeDados:
             self.clausulas_wump.append(clausula)
 
             chave = str(x) + '/' + str(y)
-            self.visitados.append(chave)
+            self.visitados.append([x,y])
 
     def posso_andar(self, xy):
         poco = ""
@@ -276,60 +288,64 @@ class BancoDeDados:
                 list.append(self.dic[chave][1])
                 if (self.dic[chave][1] in self.certezas_p) == False:
                     self.clausulas_poco.append(list)
-                    self.certezas_p.append(dic[chave][1])
+                    self.certezas_p.append(self.dic[chave][1])
                 poco = "morte"
 
 
 
-
-        list = []
-        dic = copy.deepcopy(self.dic)
-        chave = str(xy[0]) + "/" + str(xy[1])
-        
-        s = Solver(name='g4')
-        s.append_formula(self.clausulas_wump)
-        list.append(dic[chave][1])
-        s.add_clause(list)
-        #print (s.solve())
-        if s.solve() == False:
+        if self.tem_wumpus == "vivo":
             list = []
+            dic = copy.deepcopy(self.dic)
+            chave = str(xy[0]) + "/" + str(xy[1])
+            
             s = Solver(name='g4')
             s.append_formula(self.clausulas_wump)
-            dic[chave][1] = int("-" + str(dic[chave][1]))
             list.append(dic[chave][1])
             s.add_clause(list)
-            res2 = s.solve()
-            #print (res2)
-            if s.solve() == True:
+            #print (s.solve())
+            if s.solve() == False:
                 list = []
-                chave = str(xy[0]) + "/" + str(xy[1])
-                inverso = int("-" + str(self.dic[chave][1]))
-                list.append(inverso)
-                if (self.dic[chave][1] in self.certezas_w) == False:
-                    self.clausulas_wump.append(list)
-                    self.certezas_w.append(dic[chave][1])
-                wumpus = "livre"
+                s = Solver(name='g4')
+                s.append_formula(self.clausulas_wump)
+                dic[chave][1] = int("-" + str(dic[chave][1]))
+                list.append(dic[chave][1])
+                s.add_clause(list)
+                res2 = s.solve()
+                #print (res2)
+                if s.solve() == True:
+                    list = []
+                    chave = str(xy[0]) + "/" + str(xy[1])
+                    inverso = int("-" + str(self.dic[chave][1]))
+                    list.append(inverso)
+                    if (self.dic[chave][1] in self.certezas_w) == False:
+                        self.clausulas_wump.append(list)
+                        self.certezas_w.append(dic[chave][1])
+                    wumpus = "livre"
+                else:
+                    wumpus = "erro"
             else:
-                wumpus = "erro"
+                list = []
+                s = Solver(name='g4')
+                s.append_formula(self.clausulas_wump)
+                dic[chave][1] = int("-" + str(self.dic[chave][1]))
+                list.append(dic[chave][1])
+                s.add_clause(list)
+                res2 = s.solve()
+                #print(res2)
+                if s.solve() == True:
+                    wumpus = "duvida"
+                else:
+                    list = []
+                    chave = str(xy[0]) + "/" + str(xy[1])
+                    list.append(self.dic[chave][1])
+                    if (self.dic[chave][1] in self.certezas_w) == False:
+                        self.clausulas_wump.append(list)
+                        self.certezas_w.append(self.dic[chave][1])
+                        self.wumpus = [xy[0], xy[1]]
+                    wumpus = "morte"
         else:
-            list = []
-            s = Solver(name='g4')
-            s.append_formula(self.clausulas_wump)
-            dic[chave][1] = int("-" + str(self.dic[chave][1]))
-            list.append(dic[chave][1])
-            s.add_clause(list)
-            res2 = s.solve()
-            #print(res2)
-            if s.solve() == True:
-                wumpus = "duvida"
-            else:
-                list = []
-                chave = str(xy[0]) + "/" + str(xy[1])
-                list.append(self.dic[chave][1])
-                if (self.dic[chave][1] in self.certezas_w) == False:
-                    self.clausulas_wump.append(list)
-                    self.certezas_w.append(dic[chave][1])
-                wumpus = "morte"
+            #print("morreuuuuuu")
+            wumpus = "livre"
 
         juntos = [poco, wumpus]
         if juntos[0] == "duvida" or juntos[1] == "duvida":
@@ -338,13 +354,13 @@ class BancoDeDados:
             if ((xy in self.fila) == True):
                 self.fila.remove(xy)
                 self.fila.append(xy)
-                print (self.fila)
+                #print (self.fila)
             elif (xy in self.fila) == False:
                 self.fila.append(xy)
                 self.marca_duv = xy
             return "nao pode andar"
         elif juntos[0] == "morte" or juntos[1] == "morte":
-            self.fila.remove(xy)
+            self.fila.remove(xy) 
             return "nao pode andar"
         elif juntos == ["livre", "livre"]:
             self.fila.pop(0)
@@ -384,7 +400,7 @@ class BancoDeDados:
     def coloque_na_fila(self, x ,y):
         chave = [x,y] 
         chave_str = str(x) + '/' + str(y)
-        if ((chave_str in self.visitados) == False) and ((chave in self.fila) == False):
+        if ((chave in self.visitados) == False) and ((chave in self.fila) == False):
             self.fila.append(chave)
     
     def pysat(self):
@@ -464,6 +480,16 @@ class BancoDeDados:
         #print (self.caminho_volta )
         #print (self.caminho)
 
+    def alinhado_wumpus(self, xy):
+        if self.tem_wumpus == "vivo":
+            if (xy[0] == self.wumpus[0]) or (xy[1] == self.wumpus[1]):
+                return "sim"
+            else:
+                return 'nao'
+                
+
+        
+    
     def mostra_tudo(self, x, y):
         #print(f"\nLOCAL: [{x}/{y}]\n")
         print(f"DIC Poço: {self.dic}\n")
@@ -473,3 +499,4 @@ class BancoDeDados:
         print(f"Marca Duvida: {self.marca_duv}")
         #print(f"Claus. Poco: {self.clausulas_poco}\nClaus. Wumpus: {self.clausulas_wump}")
         print(f"Fila: {self.fila}")
+        print(f"wumpus: {self.wumpus} ")
