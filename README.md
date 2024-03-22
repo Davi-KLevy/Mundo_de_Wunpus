@@ -4,4 +4,5 @@
 
 ## Objetivo
 
-Criar um algorítmo que consiga jogar o jogo "Mundo de Wumpus"
+Criar um algorítmo que consiga jogar o jogo "Mundo de Wumpus" utilizando como linguagem _**Python**-
+e a lógica _**CNF**_ pela biblioteca _**Pysat**_
